@@ -36,29 +36,58 @@ export default function DashboardForm(props: Props) {
 
   return (
     <div className={styles.DashboardForm}>
-      <div>My Products</div>
+      <div className={styles.Description}>
+        <div>Logged-in as user: User-A</div>
+      </div>
 
-      {props.products.map((product) => {
-        return (
-          <div key={`product-${product.id}`}>
-            <div>Product name: {product.productName}</div>
-            <div>Product color: {product.productColor}</div>
-            <form>
-              <label>
-                Retail price
-                <input
-                  value={product.priceRetail}
-                  onChange={(event) =>
-                    setPriceRetail(parseFloat(event.currentTarget.value))
-                  }
-                />
-              </label>
-            </form>
+      <div className={styles.WrapperRight}>
+        <div className={styles.PlannableProducts}>
+          <div>Plannable Products</div>
+          <div>
+            {props.products.map((product) => {
+              return (
+                <div key={`product-${product.id}`}>
+                  <div>{product.productName}</div>
+                </div>
+              );
+            })}
           </div>
-        );
-      })}
+        </div>
 
-      <div>
+        <div className={styles.Views}>
+          <div>Views</div>
+          <div>
+            <div>Matrix</div>
+            <div>Charts</div>
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.ProductList}>
+        {props.products.map((product) => {
+          return (
+            <div key={`product-${product.id}`} className={styles.ProductItem}>
+              <div>Product name: {product.productName}</div>
+              <div>Product color: {product.productColor}</div>
+              <form>
+                <label>
+                  Retail price
+                  <input
+                    value={product.priceRetail}
+                    onChange={(event) =>
+                      setPriceRetail(parseFloat(event.currentTarget.value))
+                    }
+                  />
+                </label>
+                <button>Update</button>
+                <button>Delete</button>
+              </form>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className={styles.CreateProduct}>
         <form
           onSubmit={async (event) => {
             event.preventDefault();
@@ -93,7 +122,7 @@ export default function DashboardForm(props: Props) {
             resetFormStates();
           }}
         >
-          <div className={styles.createProduct}>
+          <div className={styles.CreateWrapper}>
             <label>
               Product name
               <input

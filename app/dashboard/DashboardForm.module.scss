@@ -1,35 +1,116 @@
 .DashboardForm {
   display: grid;
-  grid-template-columns: 0.1fr 0.7fr 0.2fr;
+  grid-template-columns: 10fr 70fr 20fr;
   grid-template-rows: 10vh 50vh 10vh;
-  width: 100vw;
+  width: 100%;
   height: 70vh;
   padding-bottom: 15vh;
 
-  // General description
-  div {
+  //User profile
+  .Description {
     grid-row: 1;
     grid-column: 2;
+    align-self: center;
+
+    :nth-child(1) {
+      font-size: 0.7rem;
+    }
   }
-  div:nth-child(2) {
+
+  .ProductList {
     grid-row: 2;
     grid-column: 2;
-    background-color: green;
+    background-color: lightblue;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-inline: 2rem;
+    gap: 2.7rem;
+
+    overflow-y: auto;
+    scrollbar-width: none;
+    height: 100%;
   }
 
-  div:nth-child(3) {
+  .WrapperRight {
+    grid-row: 2;
+    grid-column: 3;
+
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 70fr 30fr;
+    row-gap: 2rem;
+    justify-items: center;
+    align-items: center;
+    padding-block: 1.5rem;
+    padding-inline: 1rem;
+    font-size: 0.75rem;
+    height: 100%;
+
+    .PlannableProducts {
+      grid-column: 1;
+      grid-row: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      width: 100%;
+      height: 100%;
+      padding-block: 1rem;
+      border-radius: 0.3rem;
+      background-color: lightgrey;
+
+      :nth-child(1) {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+      }
+    }
+
+    .Views {
+      grid-column: 1;
+      grid-row: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      width: 100%;
+      padding-block: 1rem;
+      border-radius: 0.3rem;
+      background-color: lightgrey;
+      height: 100%;
+
+      :nth-child(2) {
+        display: flex;
+        flex-direction: row;
+        gap: 3rem;
+      }
+    }
+  }
+
+  .CreateProduct {
     grid-row: 3;
     grid-column: 2;
-    display: flex;
-    align-items: center;
+    background-color: lightgreen;
     font-size: 0.7rem;
-  }
-}
+    padding-inline: 2.5rem;
 
-.createProduct {
-  label:nth-child(1) {
-    //  display: flex;
+    display: grid;
+    grid-template-rows: repeat(3, 1fr);
 
-    // Organise regarding responsiveness too - add placeholder, skip labels
+    form {
+      grid-row: 2;
+    }
+
+    .CreateWrapper {
+      grid-row: 2;
+      display: flex;
+      justify-content: space-between;
+
+      label {
+        display: flex;
+        flex-direction: column;
+      }
+    }
   }
 }

@@ -46,7 +46,10 @@ export default function DashboardForm(props: Props) {
           <div>
             {props.products.map((product) => {
               return (
-                <div key={`product-${product.id}`}>
+                <div
+                  key={`product-${product.id}`}
+                  className={styles.PlannableElements}
+                >
                   <div>{product.productName}</div>
                 </div>
               );
@@ -57,16 +60,16 @@ export default function DashboardForm(props: Props) {
         <div className={styles.Views}>
           <div>Views</div>
           <div>
-            <div>Matrix</div>
-            <div>Charts</div>
+            <Link href="/dashboard">Matrix</Link>
+            <Link href="/charts">Charts</Link>
           </div>
         </div>
       </div>
 
-      <div className={styles.ProductList}>
+      <div className={styles.ProductListWrapper}>
         {props.products.map((product) => {
           return (
-            <div key={`product-${product.id}`} className={styles.ProductItem}>
+            <div key={`product-${product.id}`}>
               <div>Product name: {product.productName}</div>
               <div>Product color: {product.productColor}</div>
               <form>

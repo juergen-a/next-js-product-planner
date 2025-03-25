@@ -1,0 +1,13 @@
+.Footer {
+  height: 15vh;
+  width: 100vw;
+  background-color: rgb(237, 237, 237);
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: flex-start;
+
+  div {
+    color: black;
+  }
+}

@@ -83,7 +83,7 @@ export default function DashboardForm(props: Props) {
 
                     return (
                       <td key={month}>
-                        {rowData ? rowData.unitsPlanMonth : 0}
+                        <input value={rowData ? rowData.unitsPlanMonth : 0} />
                       </td>
                     ); // Ensure no "undefined" is rendered if no data found for that month
                   })}

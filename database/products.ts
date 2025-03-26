@@ -8,14 +8,15 @@ export type Product = {
   productColor: string;
   pricePurchase: number;
   priceRetail: number;
+  unitsPlanMonth: number;
+  months: number;
+  years: number;
 };
 /*
-  unitsPlanMonth: number;
+
   unitsPlanYear: number;
   valuePlanMonth: number;
   valuePlanYear: number;
-  month: number;
-  year: number;
   user_id: number;*/
 
 // Retrieve all products from DB
@@ -54,14 +55,20 @@ export const createProductInsecure = cache(
           product_name,
           product_color,
           price_purchase,
-          price_retail
+          price_retail,
+          units_plan_month,
+          months,
+          years
         )
       VALUES
         (
           ${newProduct.productName},
           ${newProduct.productColor},
           ${newProduct.pricePurchase},
-          ${newProduct.priceRetail}
+          ${newProduct.priceRetail},
+          ${newProduct.unitsPlanMonth},
+          ${newProduct.months},
+          ${newProduct.years}
         )
       RETURNING
         products.*
@@ -79,7 +86,10 @@ export const updateProductInsecure = cache(async (updatedProduct: Product) => {
       product_name = ${updatedProduct.productName},
       product_color = ${updatedProduct.productColor},
       price_purchase = ${updatedProduct.pricePurchase},
-      price_retail = ${updatedProduct.priceRetail}
+      price_retail = ${updatedProduct.priceRetail},
+      units_plan_month = ${updatedProduct.unitsPlanMonth},
+      months = ${updatedProduct.months},
+      years = ${updatedProduct.years}
     WHERE
       id = ${updatedProduct.id}
     RETURNING

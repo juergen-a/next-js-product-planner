@@ -74,6 +74,9 @@ export async function PUT(
     productColor: result.data.productColor,
     pricePurchase: result.data.pricePurchase,
     priceRetail: result.data.priceRetail,
+    unitsPlanMonth: result.data.unitsPlanMonth || 0,
+    months: result.data.months || 0,
+    years: result.data.years || 0,
   });
 
   if (!updatedProduct) {

@@ -15,24 +15,90 @@ type Props = {
 export default function DashboardForm(props: Props) {
   // State management
   const [id, setId] = useState(0);
-  const [unitMonth, setUnitMonth] = useState(0);
   const [costsDev, setCostsDev] = useState(0);
   const [productName, setProductName] = useState('');
   const [productColor, setProductColor] = useState('');
   const [pricePurchase, setPricePurchase] = useState(0);
   const [priceRetail, setPriceRetail] = useState(0);
+  const [unitsPlanMonth, setUnitsPlanMonth] = useState(0);
+  const [months, setMonths] = useState(0);
+  const [years, setYears] = useState(0);
   const [errorMessage, setErrorMessage] = useState(0);
 
-  // Trigger database update
+  // Loading router function to trigger database update where needed
   const router = useRouter();
 
-  // Resetting form
+  // Loading resetter function of form component states to use where needed
   function resetFormStates() {
     setProductName('');
     setProductColor('');
     setPricePurchase(0);
     setPriceRetail(0);
+    setUnitsPlanMonth(0);
+    setMonths(0);
+    setYears(0);
   }
+
+  // Data from database - all product data
+  const productsData = props.products;
+
+  console.log('dataProducts', productsData);
+
+  // Create array of months
+  const monthsData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
+  // Get unique existing productIds - avoiding double Ids based on monthly entries
+  const idsData = [
+    ...new Set(
+      productsData.map((item) => {
+        return item.id;
+      }),
+    ),
+  ];
+
+  return (
+    <div>
+      <h2>Turnover Report</h2>
+
+      {idsData.map((productId) => {
+        const sortedData = productsData.filter((item) => item.id === productId);
+
+        return (
+          <div key={productId}>
+            <div>{productId}</div>
+            <table>
+              <thead>
+                <tr>
+                  {monthsData.map((month) => {
+                    return <th key={month}>{month}</th>;
+                  })}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  {monthsData.map((month) => {
+                    const rowData = sortedData.find(
+                      (item) => item.months === month,
+                    );
+
+                    return (
+                      <td key={month}>
+                        {rowData ? rowData.unitsPlanMonth : 0}
+                      </td>
+                    ); // Ensure no "undefined" is rendered if no data found for that month
+                  })}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        ); // Second return - product card - productId
+      })}
+    </div>
+  ); // First return - OVERALL turnover report
+}
+// Current code
+/*
+  {
 
   return (
     <div className={styles.DashboardForm}>
@@ -67,7 +133,8 @@ export default function DashboardForm(props: Props) {
       </div>
 
       <div className={styles.ProductListWrapper}>
-        {props.products.map((product) => {
+
+ {props.products.map((product) => {
           return (
             <div key={`product-${product.id}`}>
               <div>Product name: {product.productName}</div>
@@ -88,6 +155,8 @@ export default function DashboardForm(props: Props) {
             </div>
           );
         })}
+
+
       </div>
 
       <div className={styles.CreateProduct}>
@@ -102,6 +171,9 @@ export default function DashboardForm(props: Props) {
                 productColor,
                 pricePurchase,
                 priceRetail,
+                unitsPlanMonth,
+                months,
+                years,
               }),
               headers: {
                 'Content-Type': 'application/json',
@@ -158,13 +230,45 @@ export default function DashboardForm(props: Props) {
                 }
               />
             </label>
+            <label>
+              Units
+              <input
+                value={unitsPlanMonth}
+                onChange={(event) =>
+                  setUnitsPlanMonth(parseFloat(event.currentTarget.value))
+                }
+              />
+            </label>
+            <label>
+              Months
+              <input
+                value={months}
+                onChange={(event) =>
+                  setMonths(parseFloat(event.currentTarget.value))
+                }
+              />
+            </label>
+
+            <label>
+              Years
+              <input
+                value={years}
+                onChange={(event) =>
+                  setYears(parseFloat(event.currentTarget.value))
+                }
+              />
+            </label>
 
             <button>Create new product</button>
           </div>
         </form>
 
-        {/*   <ErrorMessage>{errorMessage}</ErrorMessage>  */}
+        {/*   <ErrorMessage>{errorMessage}</ErrorMessage>
       </div>
     </div>
   );
-}
+
+
+  }
+
+   */

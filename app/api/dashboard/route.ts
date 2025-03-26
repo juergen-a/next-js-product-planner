@@ -28,6 +28,12 @@ export const productSchema = z.object({
     (val) => parseFloat(val as string),
     z.number().min(0),
   ),
+  unitsPlanMonth: z.preprocess(
+    (val) => parseFloat(val as string),
+    z.number().min(0),
+  ),
+  months: z.preprocess((val) => parseFloat(val as string), z.number().min(0)),
+  years: z.preprocess((val) => parseFloat(val as string), z.number().min(0)),
 });
 
 // Not necessary - GET requests always with server-component directly
@@ -69,6 +75,9 @@ export async function POST(
     productColor: result.data.productColor,
     pricePurchase: result.data.pricePurchase,
     priceRetail: result.data.priceRetail,
+    unitsPlanMonth: result.data.unitsPlanMonth || 0,
+    months: result.data.months || 0,
+    years: result.data.years || 0,
   });
 
   if (!newProduct) {

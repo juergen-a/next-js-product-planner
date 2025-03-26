@@ -28,7 +28,7 @@ export default function DashboardForm(props: Props) {
   // Loading router function to trigger database update where needed
   const router = useRouter();
 
-  // Loading resetter function of form component states to use where needed
+  // Loading resetter function of form component states to use upon POST or PUT
   function resetFormStates() {
     setProductName('');
     setProductColor('');
@@ -57,44 +57,101 @@ export default function DashboardForm(props: Props) {
   ];
 
   return (
-    <div>
-      <h2>Turnover Report</h2>
+    <div className={styles.DashboardForm}>
+      <div className={styles.Description}>
+        <div>Logged-in as user: User-A</div>
+      </div>
 
-      {idsData.map((productId) => {
-        const sortedData = productsData.filter((item) => item.id === productId);
-
-        return (
-          <div key={productId}>
-            <div>{productId}</div>
-            <table>
-              <thead>
-                <tr>
-                  {monthsData.map((month) => {
-                    return <th key={month}>{month}</th>;
-                  })}
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  {monthsData.map((month) => {
-                    const rowData = sortedData.find(
-                      (item) => item.months === month,
-                    );
-
-                    return (
-                      <td key={month}>
-                        <input value={rowData ? rowData.unitsPlanMonth : 0} />
-                      </td>
-                    ); // Ensure no "undefined" is rendered if no data found for that month
-                  })}
-                </tr>
-              </tbody>
-            </table>
+      <div className={styles.WrapperRight}>
+        <div className={styles.PlannableProducts}>
+          <div>Plannable Products</div>
+          <div>
+            {props.products.map((product) => {
+              return (
+                <div
+                  key={`product-${product.id}`}
+                  className={styles.PlannableElements}
+                >
+                  <div>{product.productName}</div>
+                </div>
+              );
+            })}
           </div>
-        ); // Second return - product card - productId
-      })}
+        </div>
+
+        <div className={styles.Views}>
+          <div>Views</div>
+          <div>
+            <Link href="/dashboard">Matrix</Link>
+            <Link href="/charts">Charts</Link>
+          </div>
+        </div>
+      </div>
+
+      <h1>Plannable Products</h1>
+
+      <div className={styles.ProductCardWrapper}>
+        {idsData.map((productId) => {
+          const sortedData = productsData.filter(
+            (item) => item.id === productId,
+          );
+
+          return (
+            <div className={styles.ProductCard} key={`productId-${productId}`}>
+              {sortedData.map((item) => (
+                <div key={item.productName}>{item.productName}</div>
+              ))}
+              <form
+                onSubmit={async (event) => {
+                  event.preventDefault();
+                }}
+              >
+                <table>
+                  <thead>
+                    <tr>
+                      {monthsData.map((month) => {
+                        return <th key={`month-${month}`}>{month}</th>;
+                      })}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      {monthsData.map((month) => {
+                        const rowData = sortedData.find(
+                          (item) => item.months === month,
+                        );
+
+                        return (
+                          <td key={`month-${month}`}>
+                            <input
+                              value={rowData ? rowData.unitsPlanMonth : 0}
+                              onChange={(event) =>
+                                setUnitsPlanMonth(
+                                  parseFloat(event.currentTarget.value),
+                                )
+                              }
+                            />
+                            <input
+                              value={rowData ? rowData.priceRetail : 0}
+                              onChange={(event) =>
+                                setUnitsPlanMonth(
+                                  parseFloat(event.currentTarget.value),
+                                )
+                              }
+                            />
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  </tbody>
+                </table>
+              </form>
+            </div>
+          ); // Second return - product card - productId
+        })}
+      </div>
     </div>
-  ); // First return - OVERALL turnover report
+  ); // First return - OVERALL report
 }
 // Current code
 /*

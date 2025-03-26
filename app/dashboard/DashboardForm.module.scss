@@ -9,27 +9,77 @@
   //User profile
   .Description {
     grid-row: 1;
-    grid-column: 2;
+    grid-column: 3;
     align-self: center;
+    padding-left: 1rem;
 
     :nth-child(1) {
       font-size: 0.7rem;
     }
   }
-
-  .ProductListWrapper {
+  h1 {
+    grid-row: 1;
+    grid-column: 2;
+    font-size: 1.5rem;
+    align-self: center;
+    z-index: 10;
+  }
+  .ProductCardWrapper {
     grid-row: 2;
     grid-column: 2;
-    background-color: lightblue;
+    // background-color: lightblue;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding-inline: 2rem;
-    gap: 2.7rem;
+    padding: 2rem;
+    gap: 3rem;
+
+    border: 0.05rem solid black;
+    border-radius: 0.3rem;
 
     overflow-y: auto;
     scrollbar-width: none;
-    height: 100%;
+    width: 100%;
+  }
+
+  .ProductCard {
+    display: flex;
+    flex-direction: column;
+    padding: 1.7rem;
+    border: 0.05rem solid black;
+    border-radius: 0.3rem;
+    width: 100%;
+    background-color: rgb(237, 237, 237);
+    gap: 2rem;
+
+    :nth-child(1) {
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
+  }
+
+  table {
+    width: 100%; /* Make the table take the full width of the ProductCard */
+    // height: auto; /* Allow table height to adjust based on content */
+    border-collapse: collapse;
+  }
+
+  th {
+    font-size: 0.7rem;
+    padding-bottom: 0.7rem;
+  }
+
+  td {
+    padding-inline: 0.7rem;
+    text-align: center;
+  }
+
+  input {
+    text-align: right;
+    width: 100%;
+    padding-block: 0.1rem;
+    padding-inline: 0.3rem;
+    margin-bottom: 1rem;
   }
 
   .WrapperRight {

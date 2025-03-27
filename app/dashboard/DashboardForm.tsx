@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ErrorMessage from '../(components)/ErrorMessage';
 import type { Product } from '../../database/products';
 import type { ProductResponseBodyPost } from '../api/dashboard/route';
@@ -13,36 +13,73 @@ type Props = {
 };
 
 export default function DashboardForm(props: Props) {
+  // Data from database - all product data
+  const productsData = props.products;
+
+  // console.log('dataProducts', productsData);
+
   // State management
+  // Calculate initial state values
+  // const initialUnits = productsData.map((item) => {
+  //   const objValues = {
+  //     id: item.id, {
+  //       months: item.months,
+  //     unitsPlanMonth: item.unitsPlanMonth,
+  //     }
+
+  //   };
+  //   return objValues;
+  // });
+
+  //  console.log('initialUnits', initialUnits);
+
+  // Set states
+
+  const initialUnits = { 1: { 1: 100, 2: 120, 3: 110 } };
+
   const [id, setId] = useState(0);
   const [costsDev, setCostsDev] = useState(0);
   const [productName, setProductName] = useState('');
   const [productColor, setProductColor] = useState('');
   const [pricePurchase, setPricePurchase] = useState(0);
   const [priceRetail, setPriceRetail] = useState(0);
-  const [unitsPlanMonth, setUnitsPlanMonth] = useState(0);
+  const [unitsPlanMonth, setUnitsPlanMonth] = useState(initialUnits);
   const [months, setMonths] = useState(0);
   const [years, setYears] = useState(0);
   const [errorMessage, setErrorMessage] = useState(0);
 
+  // Handle input-change
+  function handleInputChange(productId: number, month: number, value: number) {
+    setUnitsPlanMonth((prev) => {
+      // 1. Changing the value of the product with that productId retrieved from input-field
+      const productToUpdate = { ...prev[productId], [month]: value };
+
+      // 2. Returning the object, that holds the previous state with all key:value pairs that remain unchanged and add/change the updated/added key:value pair (productToUpdate)
+      return {
+        ...prev,
+        [productId]: productToUpdate,
+      };
+    });
+  }
+
+  // console.log('initUnits', initialUnits);
+  // State - Experiments
+
+  // rowData ? rowData.unitsPlanMonth : 0
+
   // Loading router function to trigger database update where needed
   const router = useRouter();
 
-  // Loading resetter function of form component states to use upon POST or PUT
+  // Loading resetter function of form component states to use upon POST or PUT - ONLY NON-PLANNABLE ATTRIBUTES ARE POSSIBLE !!
   function resetFormStates() {
     setProductName('');
     setProductColor('');
     setPricePurchase(0);
     setPriceRetail(0);
-    setUnitsPlanMonth(0);
+    setUnitsPlanMonth({}); // exclude
     setMonths(0);
     setYears(0);
   }
-
-  // Data from database - all product data
-  const productsData = props.products;
-
-  console.log('dataProducts', productsData);
 
   // Create array of months
   const monthsData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -124,9 +161,11 @@ export default function DashboardForm(props: Props) {
                         return (
                           <td key={`month-${month}`}>
                             <input
-                              value={rowData ? rowData.unitsPlanMonth : 0}
+                              value={unitsPlanMonth[productId]?.[month] || 0}
                               onChange={(event) =>
-                                setUnitsPlanMonth(
+                                handleInputChange(
+                                  productId,
+                                  month,
                                   parseFloat(event.currentTarget.value),
                                 )
                               }
@@ -134,7 +173,7 @@ export default function DashboardForm(props: Props) {
                             <input
                               value={rowData ? rowData.priceRetail : 0}
                               onChange={(event) =>
-                                setUnitsPlanMonth(
+                                setPriceRetail(
                                   parseFloat(event.currentTarget.value),
                                 )
                               }

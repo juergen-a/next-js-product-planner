@@ -99,7 +99,7 @@ export const updateProductInsecure = cache(async (updatedProduct: Product) => {
   return product;
 });
 
-// Delete new product in database
+// Delete product in database
 export const deleteProductInsecure = cache(
   async (deletedProduct: Pick<Product, 'id'>) => {
     const [product] = await sql<Product[]>`

@@ -16,26 +16,46 @@ export default function DashboardForm(props: Props) {
   // Data from database - all product data
   const productsData = props.products;
 
-  // console.log('dataProducts', productsData);
+  console.log('dataProducts', productsData);
 
   // State management
-  // Calculate initial state values
-  // const initialUnits = productsData.map((item) => {
-  //   const objValues = {
-  //     id: item.id, {
-  //       months: item.months,
-  //     unitsPlanMonth: item.unitsPlanMonth,
-  //     }
+  // Retrieve initial state values vom DB-data
+  const testData = [
+    { id: 1, months: 4, unitsPlanMonth: 400 },
+    { id: 1, months: 3, unitsPlanMonth: 300 },
+    { id: 2, months: 2, unitsPlanMonth: 200 },
+    { id: 2, months: 1, unitsPlanMonth: 100 },
+  ];
 
-  //   };
-  //   return objValues;
-  // });
+  // Setting plannable variables for initial state values
+  const initialUnits = {};
+  const initialPriceRetail = {};
+  const initialPricePurchase = {};
+  const initialCostsDev = {};
+  const initialCostsAdmin = {};
 
-  //  console.log('initialUnits', initialUnits);
+  // Creating the datastructure and assigning retrieved initial values from DB
+
+  for (const product of productsData) {
+    const { id, months, unitsPlanMonth } = product;
+
+    initialUnits[id] = {} || {};
+    // initialPriceRetail[id] = {} || {};
+    // initialPricePurchase[id] = {} || {};
+    // initialCostsDev[id] = {} || {};
+    // initialCostsAdmin[id] = {} || {};
+
+    initialUnits[id][months] = unitsPlanMonth;
+    // initialPriceRetail[id][months] = priceRetail;
+    // initialPricePurchase[id][months] = pricePurchase;
+    // initialCostsDev[id][months] = costsDev;
+    // initialCostsAdmin[id][months] = costsAdmin;
+  }
+  console.log('initialUnits', initialUnits);
 
   // Set states
 
-  const initialUnits = { 1: { 1: 100, 2: 120, 3: 110 } };
+  // const initialUnits = { 1: { 1: 100, 2: 120, 3: 110 } };
 
   const [id, setId] = useState(0);
   const [costsDev, setCostsDev] = useState(0);
@@ -48,7 +68,9 @@ export default function DashboardForm(props: Props) {
   const [years, setYears] = useState(0);
   const [errorMessage, setErrorMessage] = useState(0);
 
-  // Handle input-change
+  // Handle input-change - ONLY PLANNABLE ATTRIBUTES ARE POSSIBLE HERE!
+
+  // Handle input 'unitsPlanMonth', TBD
   function handleInputChange(productId: number, month: number, value: number) {
     setUnitsPlanMonth((prev) => {
       // 1. Changing the value of the product with that productId retrieved from input-field
@@ -62,15 +84,10 @@ export default function DashboardForm(props: Props) {
     });
   }
 
-  // console.log('initUnits', initialUnits);
-  // State - Experiments
-
-  // rowData ? rowData.unitsPlanMonth : 0
-
   // Loading router function to trigger database update where needed
   const router = useRouter();
 
-  // Loading resetter function of form component states to use upon POST or PUT - ONLY NON-PLANNABLE ATTRIBUTES ARE POSSIBLE !!
+  // Loading resetter function of form component states to use upon POST or PUT - ONLY NON-PLANNABLE ATTRIBUTES ARE POSSIBLE HERE!
   function resetFormStates() {
     setProductName('');
     setProductColor('');

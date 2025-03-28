@@ -187,6 +187,18 @@ export default function DashboardForm(props: Props) {
                                 )
                               }
                             />
+                          </td>
+                        );
+                      })}
+                    </tr>
+
+                    <tr>
+                      {monthsData.map((month) => {
+                        const rowData = sortedData.find(
+                          (item) => item.months === month,
+                        );
+                        return (
+                          <td key={`month-${month}`}>
                             <input
                               value={rowData ? rowData.priceRetail : 0}
                               onChange={(event) =>
@@ -201,6 +213,8 @@ export default function DashboardForm(props: Props) {
                     </tr>
                   </tbody>
                 </table>
+                <button>Update</button>
+                <button>Delete</button>
               </form>
             </div>
           ); // Second return - product card - productId

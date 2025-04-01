@@ -16,7 +16,8 @@ export async function up(sql: Sql) {
       costs_admin decimal DEFAULT 0 NOT NULL, -- plan
       gross_margin decimal DEFAULT 0 NOT NULL*/ -- calc
       months integer DEFAULT 0 NOT NULL,
-      years integer DEFAULT 2025 NOT NULL
+      years integer DEFAULT 2025 NOT NULL,
+      CONSTRAINT unique_id_months UNIQUE (id, months)
       /*user_id integer */
     )
   `;

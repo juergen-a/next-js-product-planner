@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
+import { any, z } from 'zod';
+import type { ProductPost } from '../../../database/products';
 import {
   createProductInsecure,
   getProductsInsecure,
@@ -12,11 +13,11 @@ type ProductResponseBodyGet = {
 
 export type ProductResponseBodyPost =
   | {
-      product: Product;
+      product: ProductPost;
     }
   | { error: string };
 
-// Zod schema for serverside input validation
+// Zod schema for serverside input validation - PUT - update single product
 export const productSchema = z.object({
   productName: z.string().min(1),
   productColor: z.string().min(1),
@@ -32,12 +33,55 @@ export const productSchema = z.object({
     (val) => parseFloat(val as string),
     z.number().min(0),
   ),
+  yearlyTotals: z.preprocess(
+    (val) => parseFloat(val as string),
+    z.number().min(0),
+  ),
   months: z.preprocess((val) => parseFloat(val as string), z.number().min(0)),
   years: z.preprocess((val) => parseFloat(val as string), z.number().min(0)),
 });
 
+// Zod schema for serverside input validation - POST - create single product
+export const productSchemaPost = z.object({
+  productName: z.string().min(1),
+  productColor: z.string().min(1),
+  pricePurchasePost: z.preprocess(
+    (val) => parseFloat(val as string),
+    z.number().min(0),
+  ),
+  priceRetailPost: z.preprocess(
+    (val) => parseFloat(val as string),
+    z.number().min(0),
+  ),
+});
+
+// Zod schema for serverside input validation - PUT - update single product
+export const productSchemaPut = z.object({
+  // priceRetail: z.number().optional(),
+  priceRetail: z.record(z.any()),
+  unitsPlanMonth: z.record(z.any()),
+  yearlyTotals: z.record(z.any()),
+});
+
+// export const productSchemaPut = z.object(
+
+// priceRetail: z.preprocess(
+//   (val) => parseFloat(val as string),
+//   z.number().min(0),
+// ),
+// unitsPlanMonth: z.preprocess(
+//   (val) => parseFloat(val as string),
+//   z.number().min(0),
+// ),
+// yearlyTotals: z.preprocess(
+//   (val) => parseFloat(val as string),
+//   z.number().min(0),
+// ),
+// );
+
 // Not necessary - GET requests always with server-component directly
 // GET - API - Define response object 'NextResponse'
+
 export async function GET(): Promise<NextResponse<ProductResponseBodyGet>> {
   const products = await getProductsInsecure();
   return NextResponse.json({ products: products });
@@ -53,7 +97,7 @@ export async function POST(
   console.log('request data', requestBody);
 
   // Check request
-  const result = productSchema.safeParse(requestBody);
+  const result = productSchemaPost.safeParse(requestBody);
   console.log('result', result);
   console.log('result data', result.data);
 
@@ -73,11 +117,8 @@ export async function POST(
   const newProduct = await createProductInsecure({
     productName: result.data.productName,
     productColor: result.data.productColor,
-    pricePurchase: result.data.pricePurchase,
-    priceRetail: result.data.priceRetail,
-    unitsPlanMonth: result.data.unitsPlanMonth || 0,
-    months: result.data.months || 0,
-    years: result.data.years || 0,
+    pricePurchase: result.data.pricePurchasePost,
+    priceRetail: result.data.priceRetailPost,
   });
 
   if (!newProduct) {

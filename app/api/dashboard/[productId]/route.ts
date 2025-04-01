@@ -4,15 +4,15 @@ import {
   type Product,
   updateProductInsecure,
 } from '../../../../database/products';
-import { productSchema } from '../route';
+import { productSchemaPut } from '../route';
 
-type ProductResponseBodyDelete =
+export type ProductResponseBodyDelete =
   | {
       product: Product;
     }
   | { error: string };
 
-type ProductResponseBodyPut =
+export type ProductResponseBodyPut =
   | {
       product: Product;
     }
@@ -56,12 +56,16 @@ export async function PUT(
   // Get request to update
   const requestBody = await request.json();
 
-  const result = productSchema.safeParse(requestBody);
+  console.log('requestBody', requestBody);
+
+  const result = productSchemaPut.safeParse(requestBody);
+
+  console.log('result', result);
 
   if (!result.success) {
     return NextResponse.json(
       {
-        error: 'Request does not contain product to delete',
+        error: 'Safe parsing of requestBody data failed',
         errorIssues: result.error.issues,
       },
       { status: 400 },
@@ -70,13 +74,9 @@ export async function PUT(
 
   const updatedProduct = await updateProductInsecure({
     id: Number((await params).productId),
-    productName: result.data.productName,
-    productColor: result.data.productColor,
-    pricePurchase: result.data.pricePurchase,
     priceRetail: result.data.priceRetail,
     unitsPlanMonth: result.data.unitsPlanMonth || 0,
-    months: result.data.months || 0,
-    years: result.data.years || 0,
+    yearlyTotals: result.data.yearlyTotals || 0,
   });
 
   if (!updatedProduct) {

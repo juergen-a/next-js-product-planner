@@ -16,7 +16,15 @@ type Props = {
 
 export default function DashboardForm(props: Props) {
   // Data from database - all product data
-  const productsData = props.products;
+  const data = props.products;
+
+  const productsData = data.map((product) => ({
+    ...product,
+    pricePurchase: parseFloat(product.pricePurchase),
+    priceRetail: parseFloat(product.priceRetail),
+    yearlyTotals: parseFloat(product.yearlyTotals),
+  }));
+
   console.log('productsData', productsData);
 
   // State management
@@ -47,6 +55,7 @@ export default function DashboardForm(props: Props) {
   }
 
   console.log('initialUnits-1', initialUnits);
+  console.log('initialPriceRetail', initialPriceRetail);
 
   // Yearly totals - initial state values
   const initialTotals = {};
@@ -56,7 +65,7 @@ export default function DashboardForm(props: Props) {
 
     const sum = innerValues.reduce((total, value) => total + value, 0);
 
-    initialTotals[outerKey] = sum;
+    initialTotals[outerKey] = { value: sum };
   });
 
   // Set states
@@ -64,6 +73,7 @@ export default function DashboardForm(props: Props) {
   const [productColor, setProductColor] = useState('');
   const [priceRetailPost, setPriceRetailPost] = useState(0);
   const [pricePurchasePost, setPricePurchasePost] = useState(0);
+  const [products, setProducts] = useState<Product[]>(props.products);
   const [unitsPlanMonth, setUnitsPlanMonth] = useState(initialUnits);
   const [yearlyTotals, setYearlyTotals] = useState(initialTotals);
   const [priceRetail, setPriceRetail] = useState(initialPriceRetail);
@@ -73,6 +83,10 @@ export default function DashboardForm(props: Props) {
   // const [months, setMonths] = useState(0);
   // const [years, setYears] = useState(0);
   // const [id, setId] = useState(0);
+
+  useEffect(() => {
+    console.log('Products updated', products);
+  }, [products]); // This will log whenever products change.
 
   // Handle input-change - ONLY PLANNABLE ATTRIBUTES ARE POSSIBLE HERE!
   // Handle input 'unitsPlanMonth', TBD
@@ -124,7 +138,7 @@ export default function DashboardForm(props: Props) {
       // Add the changed 'updatedUnitsPlanMonth' value only to the previous state array - no object as for handleInputChange, different data structure
       return {
         ...prev,
-        [productId]: { value },
+        [productId]: { value: value || 0 },
       };
     });
   }
@@ -202,16 +216,30 @@ export default function DashboardForm(props: Props) {
                 onSubmit={async (event) => {
                   event.preventDefault();
 
+                  const dataToUpdate = {
+                    priceRetail: priceRetail[productId],
+                    unitsPlanMonth: unitsPlanMonth[productId],
+                    yearlyTotals: yearlyTotals[productId],
+                  };
+
+                  console.log('Before sending data:', {
+                    priceRetail: priceRetail[productId],
+                    unitsPlanMonth: unitsPlanMonth[productId],
+                    yearlyTotals: yearlyTotals[productId],
+                  });
+
                   const response = await fetch(`/api/dashboard/${productId}`, {
                     method: 'PUT',
-                    body: JSON.stringify({
-                      priceRetail,
-                      unitsPlanMonth,
-                      yearlyTotals,
-                    }),
+                    body: JSON.stringify(dataToUpdate),
                     headers: {
                       'Content-Type': 'application/json',
                     },
+                  });
+
+                  console.log('After sending data:', {
+                    priceRetail: priceRetail[productId],
+                    unitsPlanMonth: unitsPlanMonth[productId],
+                    yearlyTotals: yearlyTotals[productId],
                   });
 
                   if (!response.ok) {
@@ -268,7 +296,7 @@ export default function DashboardForm(props: Props) {
                       })}
                       <td key={`productId-${productId}`}>
                         <input
-                          value={yearlyTotals[productId].value || 0} // this value gets transferred to handleTotalsChange
+                          value={yearlyTotals[productId]?.value || 0} // this value gets transferred to handleTotalsChange
                           onChange={(event) =>
                             handleTotalsChange(
                               productId,
@@ -303,44 +331,7 @@ export default function DashboardForm(props: Props) {
                     </tr>
                   </tbody>
                 </table>
-                <button
-                  onClick={async () => {
-                    // const product = [productId];
-                    const response = await fetch(
-                      `/api/dashboard/${productId}`,
-                      {
-                        method: 'PUT',
-                        body: JSON.stringify({
-                          priceRetail: priceRetail[productId],
-                          unitsPlanMonth: unitsPlanMonth[productId],
-                          yearlyTotals: yearlyTotals[productId],
-                        }),
-                        headers: {
-                          'Content-Type': 'application/json',
-                        },
-                      },
-                    );
-
-                    if (!response.ok) {
-                      let newErrorMessage = 'Error creating animal';
-
-                      const body: ProductResponseBodyPut =
-                        await response.json();
-
-                      if ('error' in body) {
-                        newErrorMessage = body.error;
-                        return newErrorMessage;
-                      }
-
-                      return;
-                    }
-
-                    router.refresh();
-                    resetFormStates();
-                  }}
-                >
-                  Update
-                </button>
+                <button>Update</button>
                 <button>Delete</button>
               </form>
             </div>
@@ -365,10 +356,10 @@ export default function DashboardForm(props: Props) {
               },
             });
 
+            const body: ProductResponseBodyPost = await response.json();
+
             if (!response.ok) {
               let newErrorMessage = 'Error creating animal';
-
-              const body: ProductResponseBodyPost = await response.json();
 
               if ('error' in body) {
                 newErrorMessage = body.error;
@@ -377,8 +368,14 @@ export default function DashboardForm(props: Props) {
 
               return;
             }
+            // Update products in the state with the new product
+            const newProduct = body;
+            setProducts((prevProducts) => [
+              ...prevProducts,
+              newProduct, // Assuming the response contains the newly created product data
+            ]);
 
-            router.refresh();
+            router.push('/dashboard');
             resetFormStates();
           }}
         >

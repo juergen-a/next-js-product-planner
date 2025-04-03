@@ -94,12 +94,12 @@ export async function POST(
   // Get request
   const requestBody = await request.json();
 
-  console.log('request data', requestBody);
+  // console.log('request data', requestBody);
 
   // Check request
   const result = productSchemaPost.safeParse(requestBody);
-  console.log('result', result);
-  console.log('result data', result.data);
+  // console.log('result', result);
+  // console.log('result data', result.data);
 
   // Check if the result was valid
   if (!result.success) {
@@ -130,7 +130,7 @@ export async function POST(
     );
   }
 
-  console.log('return value', newProduct);
+  console.log('New Product', newProduct);
 
   return NextResponse.json({ product: newProduct });
 }

@@ -56,21 +56,22 @@ export async function PUT(
   // Get request to update
   const requestBody = await request.json();
 
-  console.log('requestBody', requestBody);
+  console.log('Received update data:', requestBody);
 
   const result = productSchemaPut.safeParse(requestBody);
 
-  console.log('result', result);
+  console.log('resultZodPut -- 63', result);
 
   if (!result.success) {
     return NextResponse.json(
       {
-        error: 'Safe parsing of requestBody data failed',
+        error: 'Safe parsing with Zod of requestBody data failed',
         errorIssues: result.error.issues,
       },
       { status: 400 },
     );
   }
+  console.log('params', await { params });
 
   const updatedProduct = await updateProductInsecure({
     id: Number((await params).productId),
@@ -81,10 +82,12 @@ export async function PUT(
 
   if (!updatedProduct) {
     return NextResponse.json(
-      { error: 'Access denied updating product' },
+      { error: 'Updating of product within database failed' },
       { status: 500 },
     );
   }
+
+  console.log('updatedProductPut', updatedProduct);
 
   return NextResponse.json({ product: updatedProduct });
 }

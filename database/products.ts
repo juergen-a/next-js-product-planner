@@ -67,145 +67,200 @@ export const getProductInsecure = cache(async (id: number) => {
 // Create new product in database
 export const createProductInsecure = cache(
   async (newProduct: Omit<Product, 'id'>) => {
+    const currentMonth = new Date().getMonth() + 1;
+
     const [product] = await sql<Product[]>`
       INSERT INTO
         products (
           product_name,
           product_color,
           price_purchase,
-          price_retail
+          price_retail,
+          months
         )
       VALUES
         (
           ${newProduct.productName},
           ${newProduct.productColor},
           ${newProduct.pricePurchase},
-          ${newProduct.priceRetail}
+          ${newProduct.priceRetail},
+          ${currentMonth}
         )
       RETURNING
-        products.*
+        id,
+        product_name AS "productName",
+        product_color AS "productColor",
+        price_purchase::decimal AS "pricePurchase", -- Cast to decimal explicitly
+        price_retail::decimal AS "priceRetail", -- Cast to decimal explicitly
+        units_plan_month AS "unitsPlanMonth",
+        yearly_totals::decimal AS "yearlyTotals", -- Cast to decimal explicitly
+        months,
+        years
     `;
 
     return product;
   },
 );
 
-// Update or insert new product in database
 export const updateProductInsecure = cache(async (updatedProduct: Product) => {
   console.log('updatedProduct', updatedProduct);
 
-  // Extract priceRetail (which is expected to be an object with month-value pairs)
+  // Extract priceRetail and unitsPlanMonth (both are now objects with months as inner keys)
   const priceRetail = updatedProduct.priceRetail;
+  const unitsPlanMonth = updatedProduct.unitsPlanMonth;
 
+  console.log('priceRetail', priceRetail);
+  console.log('unitsPlanMonth', unitsPlanMonth);
+
+  // Validate structures
   if (typeof priceRetail !== 'object' || priceRetail === null) {
     throw new Error('Invalid priceRetail structure');
   }
 
-  // Extract product ID
+  if (typeof unitsPlanMonth !== 'object' || unitsPlanMonth === null) {
+    throw new Error('Invalid unitsPlanMonth structure');
+  }
+
+  // Extract productId from the updatedProduct
   const productId = updatedProduct.id;
 
-  // Validate product_name - Make sure it is not null or empty
-  const productName = updatedProduct.productName || 'Unknown product';
-  const productColor = updatedProduct.productColor || 'Unknown color';
-  const pricePurchase = updatedProduct.pricePurchase || 0;
+  console.log('ProductId---Put', productId);
 
-  // if (!productName) {
-  //   throw new Error('product_name is required and cannot be null or empty');
-  // }
+  // Extract other product details (these will be the same across months if productId is the same)
+  // const productName = updatedProduct.productName || 'Unknown product';
+  // const productColor = updatedProduct.productColor || 'Unknown color';
+  // const pricePurchase = updatedProduct.pricePurchase || 0;
 
-  // Dynamically build the SQL UPSERT queries for each month:value pair in priceRetail
-  const monthUpdatePromises = Object.keys(priceRetail).map(
-    async (productIdKey) => {
-      const priceData = priceRetail[productIdKey];
+  // Extract yearly total
+  const yearlyTotal = Number(updatedProduct.yearlyTotals.value);
+  if (isNaN(yearlyTotal)) {
+    throw new Error(`Invalid yearly total value for product ${productId}`);
+  }
 
-      // Loop over each month for the given product and insert or update the price_retail for each month
-      const monthUpdatePromisesForProduct = Object.keys(priceData).map(
-        async (month) => {
-          const price = parseFloat(priceData[month]);
-          if (isNaN(price)) {
-            throw new Error(
-              `Invalid priceRetail value for product ${productIdKey}, month ${month}`,
-            );
-          }
+  // Fetch the product from the database to get product_name, product_color, and price_purchase for this productId
+  const existingProduct = await sql<Product[]>`
+    SELECT
+      id,
+      product_name,
+      product_color,
+      price_purchase
+    FROM
+      products
+    WHERE
+      id = ${productId}
+    LIMIT
+      1
+  `;
 
-          const monthNumber = parseInt(month, 10);
-          if (isNaN(monthNumber)) {
-            throw new Error(
-              `Invalid month value for product ${productIdKey}, month ${month}`,
-            );
-          }
+  if (existingProduct.length === 0) {
+    throw new Error(`Product with id ${productId} does not exist`);
+  }
 
-          // Extract units for the given month
-          const unitsForMonth = Number(
-            updatedProduct.unitsPlanMonth[monthNumber],
-          );
+  // Log the fetched product details
+  console.log('Fetched product data:', existingProduct);
 
-          // Ensure unitsForMonth is a valid number
-          if (isNaN(unitsForMonth)) {
-            throw new Error(
-              `Invalid units value for product ${productIdKey}, month ${month}: ${updatedProduct.unitsPlanMonth[monthNumber]}`,
-            );
-          }
+  // Extract product details, and handle missing values by assigning defaults
+  const existingProductName =
+    existingProduct[0].productName || 'Unknown product';
+  const existingProductColor =
+    existingProduct[0].productColor || 'Unknown color';
+  const existingPricePurchase = !isNaN(Number(existingProduct[0].pricePurchase))
+    ? Number(existingProduct[0].pricePurchase)
+    : 0; // Default to 0 if price_purchase is invalid
 
-          console.log('unitsForMonth:', unitsForMonth);
+  console.log('Retrieved product details:', {
+    productName: existingProductName,
+    productColor: existingProductColor,
+    pricePurchase: existingPricePurchase,
+  });
 
-          // Extract yearly totals if needed
-          const yearlyTotal = Number(updatedProduct.yearlyTotals.value);
+  // Now we need to process the priceRetail and unitsPlanMonth for each month
+  const monthUpdatePromises = Object.keys(priceRetail).map(async (month) => {
+    console.log('Processing month:', month);
 
-          // Ensure yearlyTotal is a valid number
-          if (isNaN(yearlyTotal)) {
-            throw new Error(
-              `Invalid yearly total value for product ${productIdKey}, total ${updatedProduct.yearlyTotals.value}`,
-            );
-          }
-
-          // UPSERT logic: insert or update the price_retail for the given productId and month
-          const [updatedProductData] = await sql<Product[]>`
-            INSERT INTO
-              products (
-                product_name,
-                product_color,
-                price_purchase,
-                months,
-                price_retail,
-                units_plan_month,
-                yearly_totals
-              )
-            VALUES
-              (
-                ${productName},
-                ${productColor},
-                ${pricePurchase},
-                ${monthNumber},
-                ${price},
-                ${unitsForMonth},
-                ${yearlyTotal}
-              )
-            ON CONFLICT (id, months) DO UPDATE
-            SET
-              price_retail = ${price},
-              units_plan_month = ${unitsForMonth},
-              yearly_totals = ${yearlyTotal}
-            RETURNING
-              products.*
-          `;
-
-          // update: where id = Id && months = month => same error currently as at the beginning =>  ⨯ Error: Invalid units value for product 1, month 0: undefined
-
-          return updatedProductData;
-        },
+    const price = parseFloat(priceRetail[month]) || 0; // Price for the current month
+    if (isNaN(price)) {
+      throw new Error(
+        `Invalid price value for product ${productId}, month ${month}`,
       );
+    }
 
-      // Wait for all month updates to complete for the given productId
-      return Promise.all(monthUpdatePromisesForProduct);
-    },
-  );
+    console.log('unitsPlanMonth for month', month, unitsPlanMonth[month]);
 
-  // Wait for all product updates to complete
-  const updatedProducts = await Promise.all(monthUpdatePromises);
+    const unitsForMonth = Number(unitsPlanMonth[month]) || 0; // Units for the current month
+    console.log('Type of unitsForMonth:', typeof unitsForMonth);
+    console.log(
+      `Checking units for product ${productId}, month ${month}:`,
+      unitsForMonth,
+    );
+    if (isNaN(unitsForMonth)) {
+      throw new Error(
+        `Invalid units value for product ${productId}, month ${month}`,
+      );
+    }
 
-  // Return the updated products (could be an array of products or just the updated product)
-  return updatedProducts.flat(); // Flatten the array of arrays, if necessary
+    // Step 1: Check if the product already exists in the database
+    const existingMonthCheck = await sql<Product[]>`
+      SELECT
+        1
+      FROM
+        products
+      WHERE
+        id = ${productId}
+        AND months = ${Number(month)}
+      LIMIT
+        1
+    `;
+
+    if (existingMonthCheck.length > 0) {
+      // If the month exists, update the existing row
+      console.log(
+        `Month ${month} exists for product ${productId}, updating price and units.`,
+      );
+      await sql`
+        UPDATE products
+        SET
+          price_retail = ${price},
+          units_plan_month = ${unitsForMonth},
+          yearly_totals = ${yearlyTotal}
+        WHERE
+          id = ${productId}
+          AND months = ${Number(month)}
+      `;
+    } else {
+      // If the month does not exist, insert a new row
+      console.log(
+        `Month ${month} does not exist for product ${productId}, creating new row.`,
+      );
+      await sql`
+        INSERT INTO
+          products (
+            product_name,
+            product_color,
+            price_purchase,
+            months,
+            price_retail,
+            units_plan_month,
+            yearly_totals
+          )
+        VALUES
+          (
+            ${existingProductName}, -- product_name
+            ${existingProductColor}, -- product_color
+            ${existingPricePurchase}, -- price_purchase
+            ${Number(month)}, -- months
+            ${price}, -- price_retail (from your input data)
+            ${unitsForMonth}, -- units_plan_month (from your input data)
+            ${yearlyTotal} -- yearly_totals (from your input data)
+          )
+      `;
+    }
+  });
+
+  // Await all month update promises
+  await Promise.all(monthUpdatePromises);
+
+  console.log(`Finished updating product ${productId}`);
 });
 
 //   const priceRetail = parseFloat(updatedProduct.priceRetail);

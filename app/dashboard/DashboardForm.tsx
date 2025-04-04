@@ -16,56 +16,97 @@ type Props = {
 
 export default function DashboardForm(props: Props) {
   // Data from database - all product data
-  const data = props.products;
 
-  const productsData = data.map((product) => ({
-    ...product,
-    pricePurchase: parseFloat(product.pricePurchase),
-    priceRetail: parseFloat(product.priceRetail),
-    yearlyTotals: parseFloat(product.yearlyTotals),
-  }));
+  const productsData = props.products;
 
-  console.log('productsData', productsData);
+  const processProductData = (productsData) => {
+    const initialUnits = {};
+    const initialPriceRetail = {};
 
-  // State management
-  // PLANNABLES
-  // Setting plannable variables for initial state values
-  const initialUnits = {};
-  const initialPriceRetail = {};
-  const initialPricePurchase = {};
-  const initialCostsDev = {};
-  const initialCostsAdmin = {};
+    // Step 1: Process the productsData and populate initialUnits and initialPriceRetail
+    productsData.forEach((product) => {
+      const { id, months, unitsPlanMonth, priceRetail } = product;
 
-  // Creating the datastructure and assigning retrieved initial values from DB
-  for (const product of productsData) {
-    const { id, months, unitsPlanMonth, priceRetail } = product;
+      // Initialize if not already present for the product id
+      if (!initialUnits[id]) {
+        initialUnits[id] = {};
+        initialPriceRetail[id] = {};
+      }
 
-    initialUnits[id] = {} || {};
-    initialPriceRetail[id] = {} || {};
-    // initialPricePurchase[id] = {} || {};
-    // initialCostsDev[id] = {} || {};
-    // initialCostsAdmin[id] = {} || {};
+      // Populate the data
+      initialUnits[id][months] = unitsPlanMonth;
+      initialPriceRetail[id][months] = priceRetail;
+    });
 
-    initialUnits[id][months] = unitsPlanMonth;
-    initialPriceRetail[id][months] = priceRetail;
-    // initialPricePurchase[id][months] = pricePurchase;
-    // initialCostsDev[id][months] = costsDev;
-    // initialCostsAdmin[id][months] = costsAdmin;
-  }
+    // Step 2: Calculate the initialTotals based on initialUnits
+    const initialTotals = {};
 
-  console.log('initialUnits-1', initialUnits);
-  console.log('initialPriceRetail', initialPriceRetail);
+    Object.keys(initialUnits).forEach((outerKey) => {
+      const innerValues = Object.values(initialUnits[outerKey]);
+
+      // Calculate the sum of the units for each product id
+      const sum = innerValues.reduce((total, value) => total + value, 0);
+
+      initialTotals[outerKey] = { value: sum };
+    });
+
+    // You can now return or use the initialTotals object as needed
+    return { initialUnits, initialPriceRetail, initialTotals };
+  };
+
+  // State initialization with processed data
+  const { initialUnits, initialPriceRetail, initialTotals } =
+    processProductData(productsData);
+
+  // const productsData = data.map((product) => ({
+  //   ...product,
+  //   pricePurchase: parseFloat(product.pricePurchase),
+  //   priceRetail: parseFloat(product.priceRetail),
+  //   yearlyTotals: parseFloat(product.yearlyTotals),
+  // }));
+
+  // console.log('productsData', productsData);
+
+  // // State management
+  // // PLANNABLES
+  // // Setting plannable variables for initial state values
+  // const initialUnits = {};
+  // const initialPriceRetail = {};
+  // const initialPricePurchase = {};
+  // const initialCostsDev = {};
+  // const initialCostsAdmin = {};
+
+  // // Creating the datastructure and assigning retrieved initial values from DB
+  // for (const product of productsData) {
+  //   const { id, months, unitsPlanMonth, priceRetail } = product;
+
+  //   initialUnits[id] = {} || {};
+  //   initialPriceRetail[id] = {} || {};
+  //   // initialPricePurchase[id] = {} || {};
+  //   // initialCostsDev[id] = {} || {};
+  //   // initialCostsAdmin[id] = {} || {};
+
+  //   initialUnits[id][months] = unitsPlanMonth;
+  //   initialPriceRetail[id][months] = priceRetail;
+  //   // initialPricePurchase[id][months] = pricePurchase;
+  //   // initialCostsDev[id][months] = costsDev;
+  //   // initialCostsAdmin[id][months] = costsAdmin;
+  // }
+
+  // console.log('initialUnits-1', initialUnits);
+  // console.log('initialPriceRetail', initialPriceRetail);
 
   // Yearly totals - initial state values
-  const initialTotals = {};
 
-  Object.keys(initialUnits).forEach((outerKey) => {
-    const innerValues = Object.values(initialUnits[outerKey]);
+  // const initialTotals = {};
 
-    const sum = innerValues.reduce((total, value) => total + value, 0);
+  // Object.keys(initialUnits).forEach((outerKey) => {
+  //   const innerValues = Object.values(initialUnits[outerKey]);
 
-    initialTotals[outerKey] = { value: sum };
-  });
+  //   const sum = innerValues.reduce((total, value) => total + value, 0);
+
+  //   initialTotals[outerKey] = { value: sum };
+  // });
 
   // Set states
   const [productName, setProductName] = useState('');
@@ -166,6 +207,31 @@ export default function DashboardForm(props: Props) {
     ),
   ];
 
+  const idsSorted = idsData.sort();
+
+  console.log('idsData', idsData);
+
+  const transformedData = [];
+
+  productsData.forEach((product) => {
+    // Check if the id is already in the transformedData array
+    if (!transformedData.some((item) => item.id === product.id)) {
+      // Add the product to the transformedData array with only the required fields
+      transformedData.push({
+        id: product.id,
+        productName: product.productName,
+        productColor: product.productColor,
+        years: product.years,
+      });
+    }
+  });
+
+  console.log(transformedData);
+
+  const transformedSorted = transformedData.sort((a, b) => a.id - b.id);
+
+  console.log(transformedSorted);
+
   return (
     <div className={styles.DashboardForm}>
       <div className={styles.Description}>
@@ -176,7 +242,7 @@ export default function DashboardForm(props: Props) {
         <div className={styles.PlannableProducts}>
           <div>Plannable Products</div>
           <div>
-            {props.products.map((product) => {
+            {transformedSorted.map((product) => {
               return (
                 <div
                   key={`product-${product.id}`}
@@ -201,15 +267,18 @@ export default function DashboardForm(props: Props) {
       <h1>Plannable Products</h1>
 
       <div className={styles.ProductCardWrapper}>
-        {idsData.map((productId) => {
-          const sortedData = productsData.filter(
+        {idsSorted.map((productId) => {
+          const sortedData = transformedSorted.filter(
             (item) => item.id === productId,
           );
 
           return (
             <div className={styles.ProductCard} key={`productId-${productId}`}>
               {sortedData.map((item) => (
-                <div key={item.productName}>{item.productName}</div>
+                <div key={item.id}>
+                  <div> {item.productName}</div>
+                  <div>{item.productColor}</div>
+                </div>
               ))}
               <form
                 onSubmit={async (event) => {

@@ -3,7 +3,7 @@ import type { Sql } from 'postgres';
 export async function up(sql: Sql) {
   await sql`
     CREATE TABLE products (
-      id integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+      id integer GENERATED ALWAYS AS IDENTITY,
       product_name varchar(30) NOT NULL,
       product_color varchar(30) NOT NULL,
       price_purchase decimal DEFAULT 0 NOT NULL,

@@ -132,6 +132,7 @@ export const updateProductInsecure = cache(async (updatedProduct: Product) => {
   // const pricePurchase = updatedProduct.pricePurchase || 0;
 
   // Extract yearly total
+
   const yearlyTotal = Number(updatedProduct.yearlyTotals.value);
   if (isNaN(yearlyTotal)) {
     throw new Error(`Invalid yearly total value for product ${productId}`);
@@ -174,11 +175,32 @@ export const updateProductInsecure = cache(async (updatedProduct: Product) => {
     pricePurchase: existingPricePurchase,
   });
 
+  const monthsArray = {
+    1: 1,
+    2: 2,
+    3: 3,
+    4: 4,
+    5: 5,
+    6: 6,
+    7: 7,
+    8: 8,
+    9: 9,
+    10: 10,
+    11: 11,
+    12: 12,
+  };
+
   // Now we need to process the priceRetail and unitsPlanMonth for each month
-  const monthUpdatePromises = Object.keys(priceRetail).map(async (month) => {
+  const monthUpdatePromises = Object.keys(monthsArray).map(async (month) => {
     console.log('Processing month:', month);
 
     const price = parseFloat(priceRetail[month]) || 0; // Price for the current month
+    console.log('Type of price:', typeof price);
+    console.log(
+      `Checking price for product ${productId}, month ${month}:`,
+      price,
+    );
+
     if (isNaN(price)) {
       throw new Error(
         `Invalid price value for product ${productId}, month ${month}`,
@@ -232,9 +254,12 @@ export const updateProductInsecure = cache(async (updatedProduct: Product) => {
       console.log(
         `Month ${month} does not exist for product ${productId}, creating new row.`,
       );
+
       await sql`
+        -- Override the sequence for the id
         INSERT INTO
           products (
+            id,
             product_name,
             product_color,
             price_purchase,
@@ -243,8 +268,11 @@ export const updateProductInsecure = cache(async (updatedProduct: Product) => {
             units_plan_month,
             yearly_totals
           )
+        OVERRIDING SYSTEM VALUE
         VALUES
           (
+            ${productId},
+            -- product_name
             ${existingProductName}, -- product_name
             ${existingProductColor}, -- product_color
             ${existingPricePurchase}, -- price_purchase

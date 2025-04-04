@@ -28,7 +28,6 @@ export default function DashboardForm(props: Props) {
   console.log('productsData', productsData);
 
   // State management
-
   // PLANNABLES
   // Setting plannable variables for initial state values
   const initialUnits = {};

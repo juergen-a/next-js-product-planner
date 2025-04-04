@@ -5,7 +5,10 @@ import { useEffect, useState } from 'react';
 import ErrorMessage from '../(components)/ErrorMessage';
 import type { Product } from '../../database/products';
 import { up } from '../../migrations/00000-createTableProducts';
-import type { ProductResponseBodyPut } from '../api/dashboard/[productId]/route';
+import type {
+  ProductResponseBodyDelete,
+  ProductResponseBodyPut,
+} from '../api/dashboard/[productId]/route';
 import type { ProductResponseBodyPost } from '../api/dashboard/route';
 import styles from './DashboardForm.module.scss';
 
@@ -278,6 +281,7 @@ export default function DashboardForm(props: Props) {
                 <div key={item.id}>
                   <div> {item.productName}</div>
                   <div>{item.productColor}</div>
+                  <div>{item.years}</div>
                 </div>
               ))}
               <form
@@ -400,8 +404,35 @@ export default function DashboardForm(props: Props) {
                   </tbody>
                 </table>
                 <button>Update</button>
-                <button>Delete</button>
               </form>
+              <button
+                onClick={async () => {
+                  const response = await fetch(`api/dashboard/${productId}`, {
+                    method: 'DELETE',
+                  });
+
+                  setErrorMessage('');
+
+                  if (!response.ok) {
+                    let newErrorMessage = 'Error creating animal';
+
+                    const responseBody: ProductResponseBodyDelete =
+                      await response.json();
+
+                    if ('error' in responseBody) {
+                      newErrorMessage = responseBody.error;
+                      return newErrorMessage;
+                    }
+
+                    setErrorMessage(newErrorMessage);
+                    return;
+                  }
+                  router.refresh();
+                  resetFormStates();
+                }}
+              >
+                Delete
+              </button>
             </div>
           ); // Second return - product card - productId
         })}
